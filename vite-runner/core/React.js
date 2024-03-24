@@ -94,8 +94,8 @@ function performWorkOfUnit (fiber) {
   initChilder(fiber)
 
   if (fiber.child) return fiber.child
-  if (fiber.sibling) fiber.sibling
-    // return fiber.parent?.sibling
+  if (fiber.sibling) return fiber.sibling
+
   let parent = fiber.parent
   while (parent) {
     if (parent.sibling) return parent.sibling
