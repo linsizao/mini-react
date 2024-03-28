@@ -16,12 +16,22 @@ import React from './core/React.js'
 
 // const App = () => <div>react</div>
 
-
+let count = 0
+let props = {id: '111'}
 function Counter ({ num }) {
+
   function handleClick () {
     console.log('handleClick');
+    count++
+    props = {}
+    React.update()
   }
-  return <div >count: {num} <button onClick={handleClick}>button</button></div>
+
+  return <div {...props}>
+    <p>num: {num}</p>
+    <p>count: {count}</p>
+    <button onClick={handleClick}>button</button>
+  </div>
 }
 
 function CountConainer () {
