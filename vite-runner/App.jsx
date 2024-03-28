@@ -17,8 +17,11 @@ import React from './core/React.js'
 // const App = () => <div>react</div>
 
 
-function Counter ({num}) {
-  return <div>count: {num}</div>
+function Counter ({ num }) {
+  function handleClick () {
+    console.log('handleClick');
+  }
+  return <div >count: {num} <button onClick={handleClick}>button</button></div>
 }
 
 function CountConainer () {
@@ -29,7 +32,6 @@ function CountConainer () {
 const App = () => (<div>
   react
   <Counter num={10}></Counter>
-  <Counter num={20}></Counter>
 </div>)
 
 export default App

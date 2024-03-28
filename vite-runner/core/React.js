@@ -14,7 +14,6 @@ function createElement (type, props, ...children) {
     props: {
       ...props,
       children: children.map((child) => {
-        console.log('child', child)
         const isTextNode = ['string', 'number'].includes(typeof child)
         return isTextNode ? createTextNode(child) : child
       })
@@ -84,7 +83,11 @@ function createDom (type) {
 
 function updateProps (dom, props) {
   Object.keys(props).forEach((key) => {
-    if (key !== 'children') {
+    // 处理事件
+    if (key.startsWith('on')) {
+      const funName = key.slice(2).toLocaleLowerCase()
+      dom.addEventListener(funName, props[key])
+    }else if (key !== 'children') {
       dom[key] = props[key]
     }
   })
