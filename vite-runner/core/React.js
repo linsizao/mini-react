@@ -28,6 +28,9 @@ let nextWorkOfUnit = null
 let wipRoot = null
 // 当前根节点
 let currentRoot = null
+// 要删除节点数组
+let deletions = []
+let wipFiber = null
 
 function render (el, container) {
   wipRoot = {
@@ -41,14 +44,16 @@ function render (el, container) {
 }
 
 function update () {
-  console.log('currentRoot', currentRoot);
-  wipRoot = {
-    dom: currentRoot.dom,
-    props: currentRoot.props,
-    alternate: currentRoot
-  }
+  let currentFiber = wipFiber
 
-   nextWorkOfUnit = wipRoot
+  return () => {
+    console.log('currentFiber', currentFiber);
+    wipRoot = {
+      ...currentFiber,
+      alternate: currentFiber
+    }
+    nextWorkOfUnit = wipRoot
+  }
 }
 
 // 工作循环
@@ -57,6 +62,10 @@ function workLoop (deadline) {
   console.log('shouldYield', shouldYield);
   while (!shouldYield && nextWorkOfUnit) {
     nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
+    if (wipRoot?.sibling?.type === nextWorkOfUnit?.type) {
+      console.log('hit', wipRoot, nextWorkOfUnit);
+      nextWorkOfUnit = undefined
+    }
 
     shouldYield = deadline.timeRemaining() < 1
   }
@@ -68,9 +77,25 @@ function workLoop (deadline) {
   requestIdleCallback(workLoop)
 }
 
+// 删除节点
+function commitDeletion (fiber) {
+  // console.log('fiber', fiber);
+  if (fiber.dom) {
+    let fiberParent = fiber.parent
+    while (!fiberParent.dom) {
+      fiberParent = fiberParent.parent
+    }
+    fiberParent.dom.removeChild(fiber.dom)
+  } else {
+    commitDeletion(fiber.child)
+  }
+}
+
 function commitRoot () {
+  deletions.forEach(commitDeletion) // 删除节点
   commitWork(wipRoot.child)
 
+  deletions = []
   currentRoot = wipRoot
   wipRoot = null
 }
@@ -118,7 +143,7 @@ function updateProps (dom, newProps, prevProps) {
           dom.removeEventListener(eventType, prevProps[key])
           dom.addEventListener(eventType, newProps[key])
         } else {
-          console.log('dom', dom);
+          // console.log('dom', dom);
           dom[key] = newProps[key]
         }
       }
@@ -127,6 +152,7 @@ function updateProps (dom, newProps, prevProps) {
 }
 
 function reconcileChildren (fiber, children) {
+  // console.log('fiber', fiber);
   let oldFiber = fiber.alternate?.child
   let prevChild = null
 
@@ -146,18 +172,25 @@ function reconcileChildren (fiber, children) {
         alternate: oldFiber
       }
     } else {
-      newFiber = {
-        type: child.type,
-        props: child.props,
-        parent: fiber,
-        child: null,
-        sibling: null,
-        dom: null,
-        effectTag: 'placement'
+      if (child) {
+        newFiber = {
+          type: child.type,
+          props: child.props,
+          parent: fiber,
+          child: null,
+          sibling: null,
+          dom: null,
+          effectTag: 'placement'
+        }
+      }
+
+      // 把旧的添加进删除数组
+      if (oldFiber) {
+        deletions.push(oldFiber)
       }
     }
 
-    // 指向兄弟节点?
+    // 指向兄弟节点
     if (oldFiber) {
       oldFiber = oldFiber.sibling
     }
@@ -167,8 +200,18 @@ function reconcileChildren (fiber, children) {
     } else {
       prevChild.sibling = newFiber
     }
-    prevChild = newFiber
+
+    // 记录前一个节点
+    if (newFiber) {
+      prevChild = newFiber
+    }
   })
+
+  // 将多余的老节点添加进删除数组
+  while (oldFiber) {
+    deletions.push(oldFiber)
+    oldFiber = oldFiber.sibling
+  }
 }
 
 function isFunction (v) {
@@ -176,6 +219,7 @@ function isFunction (v) {
 }
 
 function updateFunctioComponent (fiber) {
+  wipFiber = fiber
   const children = [fiber.type(fiber.props)]
   reconcileChildren(fiber, children)
 }
