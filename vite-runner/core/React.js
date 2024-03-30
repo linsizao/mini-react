@@ -56,6 +56,45 @@ function update () {
   }
 }
 
+let stateHooks = []
+let stateHookIndex = 0
+
+function useState (initial) {
+  let currentFiber = wipFiber
+  const oldHook = currentFiber.alternate?.stateHooks[stateHookIndex]
+  const stateHook = {
+    state: oldHook ? oldHook.state : initial,
+    queue: oldHook ? oldHook.queue : [] // 队列
+  }
+
+  // 执行队列修改 state
+  stateHook.queue.forEach((action) => {
+    stateHook.state = action(stateHook.state)
+  })
+  stateHook.queue = []
+
+  // 记录和添加 stateHook
+  stateHookIndex++
+  stateHooks.push(stateHook)
+  currentFiber.stateHooks = stateHooks
+
+  function setState (action) {
+    // action 值一样不更新
+    const eagerState = typeof action === 'function' ? action() : action
+    if (eagerState === stateHook.state) return
+
+    stateHook.queue.push(typeof action === 'function' ? action : () => action)
+
+    wipRoot = {
+      ...currentFiber,
+      alternate: currentFiber
+    }
+    nextWorkOfUnit = wipRoot
+  }
+
+  return [stateHook.state, setState]
+}
+
 // 工作循环
 function workLoop (deadline) {
   let shouldYield = false
@@ -220,6 +259,9 @@ function isFunction (v) {
 
 function updateFunctioComponent (fiber) {
   wipFiber = fiber
+  // 重置 state
+  stateHooks = []
+  stateHookIndex = 0
   const children = [fiber.type(fiber.props)]
   reconcileChildren(fiber, children)
 }
@@ -258,6 +300,7 @@ requestIdleCallback(workLoop)
 const React = {
   render,
   update,
+  useState,
   createElement
 }
 

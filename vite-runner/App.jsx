@@ -23,18 +23,22 @@ let footCoun = 1
 let barCoun = 1
 
 const Foo = () => {
-  console.log('Foo');
+  // const update = React.update()
 
-  const update = React.update()
+  const [count, setCount] = React.useState(10)
+  const [barCoun, setBarCoun] = React.useState('bar')
   function onClick () {
-    footCoun++
+    // footCoun++
     // React.update()
-    update()
+    // update()
+    // setCount((c) => c + 1)
+    setBarCoun((s) => 'bar')
   }
 
   return (
     <div>
-      foo: {footCoun }
+      <p> foo: {count} </p>
+      <p> barCoun: {barCoun}</p>
       <button onClick={onClick}>button</button>
     </div>
   )
@@ -64,7 +68,7 @@ const Bar = () => {
 function Counter ({ num }) {
   console.log('Parent');
 
-  const update = React.update()
+  // const update = React.update()
   function handleClick () {
     count++
     props = {}
@@ -80,10 +84,10 @@ function Counter ({ num }) {
       {status ? Foo : bar }
     </div> */}
 
-    <button onClick={handleClick}>button</button>
+    {/* <button onClick={handleClick}>button</button> */}
     {/* {status && bar} */}
     <Foo />
-    <Bar />
+    {/* <Bar /> */}
   </div>
 }
 
