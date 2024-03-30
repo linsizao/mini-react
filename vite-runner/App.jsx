@@ -31,9 +31,23 @@ const Foo = () => {
     // footCoun++
     // React.update()
     // update()
-    // setCount((c) => c + 1)
-    setBarCoun((s) => 'bar')
+    setCount((c) => c + 1)
+    // setBarCoun((s) => 'bar')
   }
+
+  React.useEffect(() => {
+    console.log('init');
+    return () => {
+      console.log('cleanUp0');
+    }
+  }, [])
+
+  React.useEffect(() => {
+    console.log('update');
+    return () => {
+      console.log('cleanUp1');
+    }
+  }, [count])
 
   return (
     <div>
