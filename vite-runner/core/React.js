@@ -123,6 +123,11 @@ function workLoop (deadline) {
 
   if (!nextWorkOfUnit && wipRoot) {
     commitRoot()
+
+    // useEffect 改变 state 后需要再更新 dom
+    if (nextWorkOfUnit) {
+      wipRoot = currentRoot
+    }
   }
 
   requestIdleCallback(workLoop)
@@ -200,7 +205,8 @@ function commitWork (fiber) {
     fiberParent = fiberParent.parent
   }
 
-  if (fiber.effectTag === 'update') {
+  // 如果是 function component 的话不应该去处理 peops，因为没有 dom
+  if (fiber.effectTag === 'update' && fiber.dom) {
     updateProps(fiber.dom, fiber.props, fiber.alternate?.props)
   } else {
     fiber.dom && fiberParent.dom.append(fiber.dom)
