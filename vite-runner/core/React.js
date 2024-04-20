@@ -47,7 +47,7 @@ function update () {
   let currentFiber = wipFiber
 
   return () => {
-    console.log('currentFiber', currentFiber);
+    // console.log('currentFiber', currentFiber);
     wipRoot = {
       ...currentFiber,
       alternate: currentFiber
@@ -110,7 +110,7 @@ function useEffect (callback, deps) {
 // 工作循环
 function workLoop (deadline) {
   let shouldYield = false
-  console.log('shouldYield', shouldYield);
+  // console.log('shouldYield', shouldYield);
   while (!shouldYield && nextWorkOfUnit) {
     nextWorkOfUnit = performWorkOfUnit(nextWorkOfUnit)
     if (wipRoot?.sibling?.type === nextWorkOfUnit?.type) {
@@ -203,9 +203,11 @@ function commitWork (fiber) {
   let fiberParent = fiber.parent
   while (!fiberParent.dom) {
     fiberParent = fiberParent.parent
+
+    console.log('111')
   }
 
-  // 如果是 function component 的话不应该去处理 peops，因为没有 dom
+  // 如果 fiber 是 function component 的话不应该去处理 peops，因为没有 dom
   if (fiber.effectTag === 'update' && fiber.dom) {
     updateProps(fiber.dom, fiber.props, fiber.alternate?.props)
   } else {
@@ -342,7 +344,7 @@ function updateHookComponent (fiber) {
 
 // 处理工作单元
 function performWorkOfUnit (fiber) {
-  // console.log('fiber', fiber)
+  console.log('fiber', fiber)
   const isFunctioComponent = isFunction(fiber.type)
   isFunctioComponent ? updateFunctioComponent(fiber) : updateHookComponent(fiber)
 
